@@ -14,7 +14,9 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,6 +29,9 @@ import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public class UpdateActivity extends AppCompatActivity {
 
@@ -53,10 +58,11 @@ public class UpdateActivity extends AppCompatActivity {
 
         itemHelper = new ItemHelper(this);
         itemHelper.open();
+        itemModel = new ItemModel();
 
         Intent intent = getIntent();
         final String name = intent.getStringExtra("name");
-        String price = intent.getStringExtra("price");
+        int price = intent.getIntExtra("price",0);
         final int id = intent.getIntExtra("id", -1);
         Cursor cursor = itemHelper.getItemImage(id);
         byte[] image = null;
@@ -65,8 +71,9 @@ public class UpdateActivity extends AppCompatActivity {
         }
         Bitmap bitmap = BitmapFactory.decodeByteArray(image, 0, image.length);
 
+        String strPrice = String.valueOf(price);
         edtName.setText(name);
-        edtPrice.setText(price);
+        edtPrice.setText(strPrice);
         imageView.setImageBitmap(bitmap);
 
         imageView.setOnClickListener(new View.OnClickListener() {
@@ -80,14 +87,20 @@ public class UpdateActivity extends AppCompatActivity {
             }
         });
 
+        edtPrice.addTextChangedListener(onTextChangedListener());
+
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String newName = edtName.getText().toString().trim();
                 String newPrice = edtPrice.getText().toString().trim();
+                if (newPrice.contains(",")) {
+                    newPrice = newPrice.replaceAll(",", "");
+                }
+                int newIntPrice = Integer.parseInt(newPrice);
                 boolean isEmpty = false;
 
-                if (TextUtils.isEmpty(newName)) {
+                if (TextUtils.isEmpty(name)) {
                     isEmpty = true;
                     edtName.setError("Name can not be blank");
 
@@ -97,13 +110,12 @@ public class UpdateActivity extends AppCompatActivity {
                 }
 
                 if (!isEmpty) {
-                    ItemModel newItem = new ItemModel();
-                    newItem.setId(id);
-                    newItem.setName(newName);
-                    newItem.setPrice(newPrice);
+                    itemModel.setId(id);
+                    itemModel.setName(newName);
+                    itemModel.setPrice(newIntPrice);
                     byte[] image = imageViewToByte(imageView);
-                    newItem.setImage(image);
-                    itemHelper.update(newItem);
+                    itemModel.setImage(image);
+                    itemHelper.update(itemModel);
 
                     Intent intent = new Intent(UpdateActivity.this, MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -141,6 +153,45 @@ public class UpdateActivity extends AppCompatActivity {
         });
     }
 
+    private TextWatcher onTextChangedListener() {
+
+        return new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                edtPrice.removeTextChangedListener(this);
+                try{
+                    String originalString = s.toString();
+
+                    Long longval;
+                    if (originalString.contains(",")|| originalString.contains(".")) {
+                        originalString = originalString.replaceAll(",", "");
+                        originalString = originalString.replace(".", "");
+                    }
+                    longval = Long.parseLong(originalString);
+
+                    DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance(Locale.US);
+                    formatter.applyPattern("#,###,###,###");
+                    String formattedString = formatter.format(longval);
+
+                    edtPrice.setText(formattedString);
+                    edtPrice.setSelection(edtPrice.getText().length());
+                } catch (NumberFormatException nfe) {
+                    nfe.printStackTrace();
+                }
+                edtPrice.addTextChangedListener(this);
+            }
+        };
+    }
 
     private byte[] imageViewToByte(ImageView image) {
         Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();

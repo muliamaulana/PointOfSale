@@ -17,8 +17,10 @@ import com.muliamaulana.pointofsale.R;
 import com.muliamaulana.pointofsale.UpdateActivity;
 import com.muliamaulana.pointofsale.database.ItemModel;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Locale;
 
 /**
  * Created by muliamaulana on 9/9/2018.
@@ -52,10 +54,13 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
         final int id = getItemModelArrayList().get(position).getId();
         final String name = getItemModelArrayList().get(position).getName();
-        final String price = getItemModelArrayList().get(position).getPrice();
+        final int price = getItemModelArrayList().get(position).getPrice();
+
+        Locale localeID = new Locale("in", "ID");
+        NumberFormat formatRupiah = NumberFormat.getCurrencyInstance(localeID);
 
         holder.tvTitle.setText(name);
-        holder.tvPrice.setText(price);
+        holder.tvPrice.setText(formatRupiah.format(price));
         final byte[] image = getItemModelArrayList().get(position).getImage();
         Bitmap bitmap = BitmapFactory.decodeByteArray(image,0,image.length);
 
@@ -63,10 +68,6 @@ public class ItemListAdapter extends RecyclerView.Adapter<ItemListAdapter.ViewHo
         holder.cardItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Intent intent =  new Intent(activity,UpdateActivity.class);
-//                intent.putExtra(UpdateActivity.EXTRA_POSITION, position);
-//                intent.putExtra(UpdateActivity.EXTRA_NOTE, getItemModelArrayList().get(position));
-//                activity.startActivityForResult(intent, UpdateActivity.REQUEST_UPDATE);
 
                 Intent intent =  new Intent(activity,UpdateActivity.class);
                 intent.putExtra("id",id);

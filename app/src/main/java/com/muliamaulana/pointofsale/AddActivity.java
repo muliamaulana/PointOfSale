@@ -10,7 +10,9 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,11 +25,12 @@ import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public class AddActivity extends AppCompatActivity {
 
-    public static final int REQUEST_ADD = 10;
-    public static final int RESULT_ADD = 11;
     EditText edtName, edtPrice;
     ImageView imageView;
     Button btnSubmit;
@@ -52,6 +55,8 @@ public class AddActivity extends AppCompatActivity {
         itemHelper= new ItemHelper(this);
         itemHelper.open();
 
+        itemModel = new ItemModel();
+
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -63,11 +68,18 @@ public class AddActivity extends AppCompatActivity {
             }
         });
 
+        edtPrice.addTextChangedListener(onTextChangedListener());
+
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String name = edtName.getText().toString().trim();
                 String price = edtPrice.getText().toString().trim();
+
+                if (price.contains(",")) {
+                    price = price.replaceAll(",", "");
+                }
+                int intPrice = Integer.parseInt(price);
                 boolean isEmpty = false;
 
                 if (TextUtils.isEmpty(name)) {
@@ -80,12 +92,11 @@ public class AddActivity extends AppCompatActivity {
                 }
 
                 if (!isEmpty){
-                    ItemModel newItem = new ItemModel();
-                    newItem.setName(name);
-                    newItem.setPrice(price);
+                    itemModel.setName(name);
+                    itemModel.setPrice(intPrice);
                     byte[] image = imageViewToByte(imageView);
-                    newItem.setImage(image);
-                    itemHelper.create(newItem); // Create Item
+                    itemModel.setImage(image);
+                    itemHelper.create(itemModel); // Create Item
 
                     Intent intent = new Intent(AddActivity.this,MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -94,6 +105,46 @@ public class AddActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private TextWatcher onTextChangedListener() {
+
+        return new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                edtPrice.removeTextChangedListener(this);
+                try{
+                    String originalString = s.toString();
+
+                    Long longval;
+                    if (originalString.contains(",")|| originalString.contains(".")) {
+                        originalString = originalString.replaceAll(",", "");
+                        originalString = originalString.replace(".", "");
+                    }
+                    longval = Long.parseLong(originalString);
+
+                    DecimalFormat formatter = (DecimalFormat) NumberFormat.getInstance(Locale.US);
+                    formatter.applyPattern("#,###,###,###");
+                    String formattedString = formatter.format(longval);
+
+                    edtPrice.setText(formattedString);
+                    edtPrice.setSelection(edtPrice.getText().length());
+                } catch (NumberFormatException nfe) {
+                    nfe.printStackTrace();
+                }
+                edtPrice.addTextChangedListener(this);
+            }
+        };
     }
 
     private byte[] imageViewToByte(ImageView image) {

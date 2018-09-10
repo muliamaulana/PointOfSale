@@ -57,7 +57,7 @@ public class ItemHelper {
                 itemModel = new ItemModel();
                 itemModel.setId(cursor.getInt(cursor.getColumnIndexOrThrow(_ID)));
                 itemModel.setName(cursor.getString(cursor.getColumnIndexOrThrow(NAME)));
-                itemModel.setPrice(cursor.getString(cursor.getColumnIndexOrThrow(PRICE)));
+                itemModel.setPrice(cursor.getInt(cursor.getColumnIndexOrThrow(PRICE)));
                 itemModel.setImage(cursor.getBlob(cursor.getColumnIndexOrThrow(IMAGE)));
 
                 noteArrayList.add(itemModel);

@@ -68,10 +68,6 @@ public class MainActivity extends AppCompatActivity {
         new loadItem().execute();
     }
 
-    private void showSnackbarMessage(String msg) {
-        Snackbar.make(recyclerView, msg, Snackbar.LENGTH_LONG).show();
-    }
-
     @Override
     protected void onRestart() {
         super.onRestart();
@@ -113,7 +109,6 @@ public class MainActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
 
             if (list.size() == 0){
-//                showSnackbarMessage("You don't have any note");
                 layout_empty.setVisibility(View.VISIBLE);
                 fab.setVisibility(View.INVISIBLE);
                 buttonNewItem.setOnClickListener(new View.OnClickListener() {
