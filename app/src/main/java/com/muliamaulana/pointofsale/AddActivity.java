@@ -99,7 +99,7 @@ public class AddActivity extends AppCompatActivity {
     private byte[] imageViewToByte(ImageView image) {
         Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 40, stream);
         byte[] byteArray = stream.toByteArray();
         return byteArray;
     }
